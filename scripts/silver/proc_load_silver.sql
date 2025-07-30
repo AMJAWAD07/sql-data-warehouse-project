@@ -30,7 +30,7 @@ begin
     Caution: This makes the import more forgiving but can lead to bad/missing data silently.
     Use it only if you understand the structure of your data or are doing quick testing (e.g., personal projects).
     */
-	  set session sql_mode = '';
+    set session sql_mode = '';
 
 	
     -- Load crm_cust_info
@@ -71,34 +71,34 @@ begin
 	   
 
 		-- Load crm_prd_info
-	   
-		truncate table silver_crm_prd_info;
-		
+   
+	truncate table silver_crm_prd_info;
+	
 
-		INSERT INTO silver_crm_prd_info (
-  		prd_id, cat_id, prd_key, prd_nm, prd_cost, prd_line, prd_start_dt, prd_end_dt
-		)
-		SELECT
-			prd_id,
-			REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_'),
-			SUBSTRING(prd_key, 7),
-			prd_nm,
-			IFNULL(prd_cost, 0),
-			CASE 
-				WHEN UPPER(TRIM(prd_line)) = 'M' THEN 'Mountain'
-				WHEN UPPER(TRIM(prd_line)) = 'R' THEN 'Road'
-				WHEN UPPER(TRIM(prd_line)) = 'S' THEN 'Other Sales'
-				WHEN UPPER(TRIM(prd_line)) = 'T' THEN 'Touring'
-				ELSE 'n/a'
-			END,
-			prd_start_dt,
-			CAST(
-					DATE_SUB(
-						LEAD(prd_start_dt) OVER (PARTITION BY prd_key ORDER BY prd_start_dt),
-						INTERVAL 1 DAY
-					) AS DATE
-				  ) AS prd_end_dt
-		FROM bronze_crm_prd_info;
+	INSERT INTO silver_crm_prd_info (
+	prd_id, cat_id, prd_key, prd_nm, prd_cost, prd_line, prd_start_dt, prd_end_dt
+	)
+	SELECT
+		prd_id,
+		REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_'),
+		SUBSTRING(prd_key, 7),
+		prd_nm,
+		IFNULL(prd_cost, 0),
+		CASE 
+			WHEN UPPER(TRIM(prd_line)) = 'M' THEN 'Mountain'
+			WHEN UPPER(TRIM(prd_line)) = 'R' THEN 'Road'
+			WHEN UPPER(TRIM(prd_line)) = 'S' THEN 'Other Sales'
+			WHEN UPPER(TRIM(prd_line)) = 'T' THEN 'Touring'
+			ELSE 'n/a'
+		END,
+		prd_start_dt,
+		CAST(
+				DATE_SUB(
+					LEAD(prd_start_dt) OVER (PARTITION BY prd_key ORDER BY prd_start_dt),
+					INTERVAL 1 DAY
+				) AS DATE
+			  ) AS prd_end_dt
+	FROM bronze_crm_prd_info;
 
 		
 
